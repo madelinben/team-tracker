@@ -76,7 +76,10 @@ export function Teams({ data, onChange, onSaved }: Props) {
           >
             <Minus size={16} aria-hidden="true" />
           </button>
-          <output aria-labelledby="team-count" className="w-6 text-center text-lg font-black tabular-nums">
+          <output
+            aria-labelledby="team-count"
+            className="w-6 text-center text-lg font-black tabular-nums"
+          >
             {options.teams}
           </output>
           <button
@@ -118,7 +121,9 @@ export function Teams({ data, onChange, onSaved }: Props) {
         {data.draw ? "Reshuffle" : `Pick teams from ${available.length} players`}
       </button>
       {available.length < 2 && (
-        <p className="text-center text-sm text-slate-600">Tick at least two available players first.</p>
+        <p className="text-center text-sm text-slate-600">
+          Tick at least two available players first.
+        </p>
       )}
 
       {teams.length > 0 && (
@@ -161,7 +166,15 @@ interface TeamCardProps {
   onGoals: (goals: number) => void;
 }
 
-function TeamCard({ name, colour, team, scoreLabel, positionLabel, goals, onGoals }: TeamCardProps) {
+function TeamCard({
+  name,
+  colour,
+  team,
+  scoreLabel,
+  positionLabel,
+  goals,
+  onGoals,
+}: TeamCardProps) {
   const id = `goals-${name}`;
   return (
     <li className={`rounded-2xl border-t-8 bg-white p-4 ring-1 ring-slate-200 ${colour}`}>

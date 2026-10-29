@@ -5,7 +5,6 @@ import { SPORTS, sportById } from "../lib/sports";
 import type { Player } from "../lib/team";
 import { field } from "./ui";
 
-
 export function Players({ data, onChange }: { data: TeamData; onChange: (d: TeamData) => void }) {
   const [name, setName] = useState("");
   const sport = sportById(data.options.sport);
@@ -24,13 +23,15 @@ export function Players({ data, onChange }: { data: TeamData; onChange: (d: Team
     if (!names.length) return;
     setPlayers([
       ...data.players,
-      ...names.map((n): Player => ({
-        id: crypto.randomUUID(),
-        name: n.slice(0, 40),
-        rating: 3,
-        position: "",
-        available: true,
-      })),
+      ...names.map(
+        (n): Player => ({
+          id: crypto.randomUUID(),
+          name: n.slice(0, 40),
+          rating: 3,
+          position: "",
+          available: true,
+        })
+      ),
     ]);
     setName("");
   }
@@ -49,7 +50,9 @@ export function Players({ data, onChange }: { data: TeamData; onChange: (d: Team
         Sport
         <select
           value={sport.id}
-          onChange={(e) => onChange({ ...data, options: { ...data.options, sport: e.target.value }, draw: null })}
+          onChange={(e) =>
+            onChange({ ...data, options: { ...data.options, sport: e.target.value }, draw: null })
+          }
           className={field}
         >
           {SPORTS.map((s) => (

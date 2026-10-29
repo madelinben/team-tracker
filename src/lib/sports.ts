@@ -22,14 +22,26 @@ const keeper = { id: "GK", label: "Goalkeeper", unique: true };
 
 /** Presets only shape positions and scoring: the "Any sport" entry covers everything else */
 export const SPORTS: readonly Sport[] = [
-  { id: "any", label: "Any sport", scoreLabel: "Score", draws: true, points: LEAGUE, positions: [] },
+  {
+    id: "any",
+    label: "Any sport",
+    scoreLabel: "Score",
+    draws: true,
+    points: LEAGUE,
+    positions: [],
+  },
   {
     id: "football",
     label: "Football / 5-a-side",
     scoreLabel: "Goals",
     draws: true,
     points: LEAGUE,
-    positions: [keeper, { id: "DEF", label: "Defender" }, { id: "MID", label: "Midfielder" }, { id: "FWD", label: "Forward" }],
+    positions: [
+      keeper,
+      { id: "DEF", label: "Defender" },
+      { id: "MID", label: "Midfielder" },
+      { id: "FWD", label: "Forward" },
+    ],
   },
   {
     id: "american-football",
@@ -60,7 +72,11 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Goals",
     draws: true,
     points: LEAGUE,
-    positions: ["GS", "GA", "WA", "C", "WD", "GD", "GK"].map((id) => ({ id, label: id, unique: true })),
+    positions: ["GS", "GA", "WA", "C", "WD", "GD", "GK"].map((id) => ({
+      id,
+      label: id,
+      unique: true,
+    })),
   },
   {
     id: "basketball",
@@ -80,7 +96,12 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Goals",
     draws: true,
     points: LEAGUE,
-    positions: [keeper, { id: "DEF", label: "Defender" }, { id: "MID", label: "Midfielder" }, { id: "FWD", label: "Forward" }],
+    positions: [
+      keeper,
+      { id: "DEF", label: "Defender" },
+      { id: "MID", label: "Midfielder" },
+      { id: "FWD", label: "Forward" },
+    ],
   },
   {
     id: "volleyball",

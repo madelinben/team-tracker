@@ -77,18 +77,26 @@ export function knockout(n: number, random = Math.random): Fixture[] {
   return out;
 }
 
-export function create(name: string, sport: string, format: Format, entrants: string[], returnLegs = false): Competition {
+export function create(
+  name: string,
+  sport: string,
+  format: Format,
+  entrants: string[],
+  returnLegs = false
+): Competition {
   return {
     id: crypto.randomUUID(),
     name,
     sport,
     format,
     entrants,
-    fixtures: format === "league" ? roundRobin(entrants.length, returnLegs) : knockout(entrants.length),
+    fixtures:
+      format === "league" ? roundRobin(entrants.length, returnLegs) : knockout(entrants.length),
   };
 }
 
-export const played = (f: Fixture) => f.away === null || (f.homeScore !== null && f.awayScore !== null);
+export const played = (f: Fixture) =>
+  f.away === null || (f.homeScore !== null && f.awayScore !== null);
 
 /** Winning entrant, or null while unplayed or level */
 export function winnerOf(f: Fixture): number | null {
@@ -99,7 +107,16 @@ export function winnerOf(f: Fixture): number | null {
 
 export function leagueTable(c: Competition): Row[] {
   const sport = sportById(c.sport);
-  const rows: Row[] = c.entrants.map((_, entrant) => ({ entrant, played: 0, won: 0, drawn: 0, lost: 0, for: 0, against: 0, points: 0 }));
+  const rows: Row[] = c.entrants.map((_, entrant) => ({
+    entrant,
+    played: 0,
+    won: 0,
+    drawn: 0,
+    lost: 0,
+    for: 0,
+    against: 0,
+    points: 0,
+  }));
   for (const f of c.fixtures) {
     if (f.away === null || f.homeScore === null || f.awayScore === null) continue;
     for (const [me, ours, theirs] of [
@@ -117,7 +134,9 @@ export function leagueTable(c: Competition): Row[] {
       else r.lost++;
     }
   }
-  return rows.sort((a, b) => b.points - a.points || b.for - b.against - (a.for - a.against) || b.for - a.for);
+  return rows.sort(
+    (a, b) => b.points - a.points || b.for - b.against - (a.for - a.against) || b.for - a.for
+  );
 }
 
 /** Knockout: once every tie in the latest round has a winner, draw the next round in bracket order */
@@ -127,7 +146,8 @@ export function advance(c: Competition): Competition {
   const winners = c.fixtures.filter((f) => f.round === round).map(winnerOf);
   if (winners.length < 2 || winners.some((w) => w === null)) return c;
   const next: Fixture[] = [];
-  for (let i = 0; i < winners.length; i += 2) next.push(fixture(round + 1, winners[i] ?? 0, winners[i + 1] ?? null));
+  for (let i = 0; i < winners.length; i += 2)
+    next.push(fixture(round + 1, winners[i] ?? 0, winners[i + 1] ?? null));
   return { ...c, fixtures: [...c.fixtures, ...next] };
 }
 
@@ -143,5 +163,11 @@ export function roundName(c: Competition, round: number): string {
   if (c.format === "league") return `Round ${round}`;
   const first = c.fixtures.filter((f) => f.round === 1).length * 2;
   const left = first / 2 ** (round - 1);
-  return left === 2 ? "Final" : left === 4 ? "Semi-finals" : left === 8 ? "Quarter-finals" : `Round of ${left}`;
+  return left === 2
+    ? "Final"
+    : left === 4
+      ? "Semi-finals"
+      : left === 8
+        ? "Quarter-finals"
+        : `Round of ${left}`;
 }

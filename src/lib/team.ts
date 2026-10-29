@@ -39,7 +39,16 @@ export interface Standing {
   points: number;
 }
 
-export const TEAM_NAMES = ["Reds", "Blues", "Greens", "Yellows", "Whites", "Blacks", "Oranges", "Purples"];
+export const TEAM_NAMES = [
+  "Reds",
+  "Blues",
+  "Greens",
+  "Yellows",
+  "Whites",
+  "Blacks",
+  "Oranges",
+  "Purples",
+];
 
 export function shuffle<T>(items: readonly T[], random = Math.random): T[] {
   const out = [...items];
@@ -51,14 +60,19 @@ export function shuffle<T>(items: readonly T[], random = Math.random): T[] {
 }
 
 const sum = (team: Player[]) => team.reduce((n, p) => n + p.rating, 0);
-const count = (team: Player[], position: string) => team.filter((p) => p.position === position).length;
+const count = (team: Player[], position: string) =>
+  team.filter((p) => p.position === position).length;
 
 /**
  * Deal players into teams whose sizes differ by at most one. Unique positions go first, then
  * strongest first (random within a rating), each to the eligible team with the fewest of that
  * position, then the lowest total rating.
  */
-export function makeTeams(players: readonly Player[], options: TeamOptions, random = Math.random): Player[][] {
+export function makeTeams(
+  players: readonly Player[],
+  options: TeamOptions,
+  random = Math.random
+): Player[][] {
   const sport = sportById(options.sport);
   const unique = new Set(sport.positions.filter((p) => p.unique).map((p) => p.id));
   const n = Math.max(1, Math.min(options.teams, players.length));
@@ -66,7 +80,8 @@ export function makeTeams(players: readonly Player[], options: TeamOptions, rand
   const teams: Player[][] = Array.from({ length: n }, () => []);
   const order = shuffle(players, random);
   if (options.balance) order.sort((a, b) => b.rating - a.rating);
-  if (options.spreadPositions) order.sort((a, b) => Number(unique.has(b.position)) - Number(unique.has(a.position)));
+  if (options.spreadPositions)
+    order.sort((a, b) => Number(unique.has(b.position)) - Number(unique.has(a.position)));
 
   for (const p of order) {
     const pick = shuffle(
@@ -90,7 +105,10 @@ export function teamRating(team: readonly Player[]): number {
 /** Highest score wins; a shared top score is a draw. Points follow each match's sport. */
 export function standings(matches: readonly Match[], players: readonly Player[]): Standing[] {
   const table = new Map<string, Standing>(
-    players.map((p) => [p.id, { playerId: p.id, played: 0, won: 0, drawn: 0, lost: 0, diff: 0, points: 0 }])
+    players.map((p) => [
+      p.id,
+      { playerId: p.id, played: 0, won: 0, drawn: 0, lost: 0, diff: 0, points: 0 },
+    ])
   );
   for (const m of matches) {
     const sport: Sport = sportById(m.sport);

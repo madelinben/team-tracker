@@ -43,15 +43,26 @@ export function TeamApp({ beforeExport }: { beforeExport?: BeforeExport }) {
           {tab === "players" && (
             <>
               <Players data={data} onChange={update} />
-              <DataBackup filename="team-tracker.json" data={data} parse={parseTeam} onRestore={update} beforeExport={beforeExport} />
+              <DataBackup
+                filename="team-tracker.json"
+                data={data}
+                parse={parseTeam}
+                onRestore={update}
+                beforeExport={beforeExport}
+              />
             </>
           )}
-          {tab === "teams" && <Teams data={data} onChange={update} onSaved={() => setTab("table")} />}
+          {tab === "teams" && (
+            <Teams data={data} onChange={update} onSaved={() => setTab("table")} />
+          )}
           {tab === "table" && <Table data={data} onChange={update} />}
           {tab === "leagues" && <Leagues data={data} onChange={update} />}
         </div>
       </div>
-      <nav aria-label="Team Tracker" className="grid grid-cols-4 gap-1 border-t border-slate-200 bg-white p-1.5">
+      <nav
+        aria-label="Team Tracker"
+        className="grid grid-cols-4 gap-1 border-t border-slate-200 bg-white p-1.5"
+      >
         {TABS.map(({ id, label, Icon }) => (
           <button
             key={id}

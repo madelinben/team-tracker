@@ -56,7 +56,10 @@ export function Table({ data, onChange }: { data: TeamData; onChange: (d: TeamDa
           <tbody>
             {rows.map((r, i) => (
               <tr key={r.playerId} className="border-t border-slate-100">
-                <th scope="row" className="flex items-center gap-2 px-3 py-2 text-left font-semibold">
+                <th
+                  scope="row"
+                  className="flex items-center gap-2 px-3 py-2 text-left font-semibold"
+                >
                   {i === 0 ? (
                     <Trophy size={14} className="text-amber-600" aria-label="Leader" />
                   ) : (
@@ -77,12 +80,18 @@ export function Table({ data, onChange }: { data: TeamData; onChange: (d: TeamDa
       </div>
 
       <section aria-labelledby="recent-h">
-        <h3 id="recent-h" className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+        <h3
+          id="recent-h"
+          className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-600"
+        >
           Recent games
         </h3>
         <ul className="flex flex-col gap-1 text-sm">
           {recent.map((m) => (
-            <li key={m.id} className="flex justify-between gap-3 rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200">
+            <li
+              key={m.id}
+              className="flex justify-between gap-3 rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200"
+            >
               <span className="text-slate-600">
                 {new Date(m.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
               </span>
