@@ -1,9 +1,9 @@
 {
-  "name": "@get-out-there/squad",
+  "name": "@get-out-there/team",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Pick fair football teams from any number of players, with skill ratings, positions and a running leaderboard. Embedded in get-out-there; also deployed standalone to GitHub Pages from demo/.",
+  "description": "Team tracker for any team sport: fair team picking with skill and positions, match table, leagues and knockout cups. Embedded in get-out-there; also deployed standalone to GitHub Pages from demo/.",
   "exports": {
     ".": "./src/index.ts"
   },

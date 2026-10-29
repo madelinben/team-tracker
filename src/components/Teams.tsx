@@ -1,6 +1,8 @@
 import { Minus, Plus, Save, Shuffle } from "lucide-react";
 import { useState } from "react";
-import { makeTeams, type Player, type SquadData, TEAM_NAMES, teamRating } from "../lib/squad";
+import type { TeamData } from "../lib/data";
+import { sportById } from "../lib/sports";
+import { makeTeams, type Player, TEAM_NAMES, teamRating } from "../lib/team";
 
 const TEAM_COLOURS = [
   "border-t-rose-600",
@@ -9,22 +11,25 @@ const TEAM_COLOURS = [
   "border-t-amber-500",
   "border-t-slate-300",
   "border-t-slate-900",
+  "border-t-orange-500",
+  "border-t-violet-600",
 ];
 
 interface Props {
-  data: SquadData;
-  onChange: (d: SquadData) => void;
+  data: TeamData;
+  onChange: (d: TeamData) => void;
   onSaved: () => void;
 }
 
 export function Teams({ data, onChange, onSaved }: Props) {
   const { options } = data;
+  const sport = sportById(options.sport);
   const available = data.players.filter((p) => p.available);
   const byId = new Map(data.players.map((p) => [p.id, p]));
   const teams = (data.draw ?? []).map((ids) => ids.flatMap((id) => byId.get(id) ?? []));
   const [goals, setGoals] = useState<number[]>([]);
 
-  const setOptions = (change: Partial<SquadData["options"]>) =>
+  const setOptions = (change: Partial<TeamData["options"]>) =>
     onChange({ ...data, options: { ...options, ...change }, draw: null });
 
   function draw() {
@@ -42,8 +47,9 @@ export function Teams({ data, onChange, onSaved }: Props) {
         {
           id: crypto.randomUUID(),
           date: new Date().toISOString(),
+          sport: sport.id,
           teams: data.draw,
-          goals: data.draw.map((_, i) => goals[i] ?? 0),
+          scores: data.draw.map((_, i) => goals[i] ?? 0),
         },
       ],
     });
@@ -55,7 +61,7 @@ export function Teams({ data, onChange, onSaved }: Props) {
   return (
     <section aria-labelledby="teams-h" className="flex flex-col gap-4">
       <h2 id="teams-h" className="text-xl font-extrabold">
-        Pick teams
+        Pick teams <span className="text-base font-semibold text-slate-600">· {sport.label}</span>
       </h2>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl bg-white p-4 ring-1 ring-slate-200">
         <div className="flex items-center gap-2">
@@ -124,6 +130,8 @@ export function Teams({ data, onChange, onSaved }: Props) {
                 name={TEAM_NAMES[i] ?? `Team ${i + 1}`}
                 colour={TEAM_COLOURS[i] ?? ""}
                 team={team}
+                scoreLabel={sport.scoreLabel}
+                positionLabel={(id) => sport.positions.find((o) => o.id === id)?.id ?? ""}
                 goals={goals[i] ?? 0}
                 onGoals={(g) => setGoals(teams.map((_, j) => (j === i ? g : (goals[j] ?? 0))))}
               />
@@ -147,11 +155,13 @@ interface TeamCardProps {
   name: string;
   colour: string;
   team: Player[];
+  scoreLabel: string;
+  positionLabel: (id: string) => string;
   goals: number;
   onGoals: (goals: number) => void;
 }
 
-function TeamCard({ name, colour, team, goals, onGoals }: TeamCardProps) {
+function TeamCard({ name, colour, team, scoreLabel, positionLabel, goals, onGoals }: TeamCardProps) {
   const id = `goals-${name}`;
   return (
     <li className={`rounded-2xl border-t-8 bg-white p-4 ring-1 ring-slate-200 ${colour}`}>
@@ -163,22 +173,22 @@ function TeamCard({ name, colour, team, goals, onGoals }: TeamCardProps) {
         {team.map((p) => (
           <li key={p.id} className="flex justify-between text-sm">
             <span className="font-semibold">{p.name}</span>
-            <span className="text-slate-600">{p.position === "ANY" ? "" : p.position}</span>
+            <span className="text-slate-600">{positionLabel(p.position)}</span>
           </li>
         ))}
       </ul>
       <div className="mt-3 flex items-center gap-2">
         <label htmlFor={id} className="text-sm font-semibold">
-          Goals
+          {scoreLabel}
         </label>
         <input
           id={id}
           type="number"
           inputMode="numeric"
           min={0}
-          max={99}
+          max={999}
           value={goals}
-          onChange={(e) => onGoals(Math.max(0, Math.min(99, Number(e.target.value) || 0)))}
+          onChange={(e) => onGoals(Math.max(0, Math.min(999, Number(e.target.value) || 0)))}
           className="min-h-11 w-20 rounded-xl border border-slate-300 px-3 text-lg font-bold tabular-nums"
         />
       </div>

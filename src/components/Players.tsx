@@ -1,12 +1,14 @@
 import { Plus, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { type Player, POSITIONS, type SquadData } from "../lib/squad";
+import type { TeamData } from "../lib/data";
+import { SPORTS, sportById } from "../lib/sports";
+import type { Player } from "../lib/team";
+import { field } from "./ui";
 
-const field =
-  "min-h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-700";
 
-export function Players({ data, onChange }: { data: SquadData; onChange: (d: SquadData) => void }) {
+export function Players({ data, onChange }: { data: TeamData; onChange: (d: TeamData) => void }) {
   const [name, setName] = useState("");
+  const sport = sportById(data.options.sport);
   const available = data.players.filter((p) => p.available).length;
 
   const setPlayers = (players: Player[]) => onChange({ ...data, players, draw: null });
@@ -26,7 +28,7 @@ export function Players({ data, onChange }: { data: SquadData; onChange: (d: Squ
         id: crypto.randomUUID(),
         name: n.slice(0, 40),
         rating: 3,
-        position: "ANY",
+        position: "",
         available: true,
       })),
     ]);
@@ -43,6 +45,20 @@ export function Players({ data, onChange }: { data: SquadData; onChange: (d: Squ
           {available} of {data.players.length} available
         </p>
       </div>
+      <label className="flex flex-col gap-1 text-sm font-semibold">
+        Sport
+        <select
+          value={sport.id}
+          onChange={(e) => onChange({ ...data, options: { ...data.options, sport: e.target.value }, draw: null })}
+          className={field}
+        >
+          {SPORTS.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </label>
       <form onSubmit={add} className="flex gap-2">
         <label htmlFor="new-player" className="sr-only">
           Player names, separated by commas
@@ -84,23 +100,26 @@ export function Players({ data, onChange }: { data: SquadData; onChange: (d: Squ
                 <span className="truncate">{p.name}</span>
                 <span className="sr-only">available</span>
               </label>
-              <label className="sr-only" htmlFor={`pos-${p.id}`}>
-                {p.name} position
-              </label>
-              <select
-                id={`pos-${p.id}`}
-                value={p.position}
-                onChange={(e) =>
-                  patch(p.id, { position: POSITIONS.find((o) => o.id === e.target.value)?.id ?? "ANY" })
-                }
-                className={field}
-              >
-                {POSITIONS.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
+              {sport.positions.length > 0 && (
+                <>
+                  <label className="sr-only" htmlFor={`pos-${p.id}`}>
+                    {p.name} position
+                  </label>
+                  <select
+                    id={`pos-${p.id}`}
+                    value={sport.positions.some((o) => o.id === p.position) ? p.position : ""}
+                    onChange={(e) => patch(p.id, { position: e.target.value })}
+                    className={field}
+                  >
+                    <option value="">Any position</option>
+                    {sport.positions.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              )}
               <fieldset className="flex items-center">
                 <legend className="sr-only">{p.name} skill rating</legend>
                 {[1, 2, 3, 4, 5].map((r) => (

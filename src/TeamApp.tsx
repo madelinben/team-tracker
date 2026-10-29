@@ -1,33 +1,35 @@
-import { ListOrdered, Shirt, Users } from "lucide-react";
+import { ListOrdered, Shirt, Trophy, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DataBackup } from "./components/DataBackup";
+import { Leagues } from "./components/Leagues";
 import { Players } from "./components/Players";
 import { Table } from "./components/Table";
 import { Teams } from "./components/Teams";
-import { EMPTY, parseSquad, type SquadData } from "./lib/squad";
+import { EMPTY, parseTeam, type TeamData } from "./lib/data";
 import { type BeforeExport, load, save } from "./lib/storage";
 
-const KEY = "squad-tracker";
-type Tab = "players" | "teams" | "table";
+const KEY = "team-tracker";
+type Tab = "players" | "teams" | "table" | "leagues";
 
 const TABS = [
-  { id: "players", label: "Players", Icon: Users },
-  { id: "teams", label: "Teams", Icon: Shirt },
+  { id: "players", label: "Squad", Icon: Users },
+  { id: "teams", label: "Pick", Icon: Shirt },
   { id: "table", label: "Table", Icon: ListOrdered },
+  { id: "leagues", label: "Leagues", Icon: Trophy },
 ] as const;
 
-export function SquadApp({ beforeExport }: { beforeExport?: BeforeExport }) {
+export function TeamApp({ beforeExport }: { beforeExport?: BeforeExport }) {
   const [tab, setTab] = useState<Tab>("players");
-  const [data, setData] = useState<SquadData>(EMPTY);
+  const [data, setData] = useState<TeamData>(EMPTY);
   const [ready, setReady] = useState(false);
 
   // Load after mount: localStorage is unavailable during SSR and would cause a hydration mismatch.
   useEffect(() => {
-    setData(parseSquad(load<unknown>(KEY, null)) ?? EMPTY);
+    setData(parseTeam(load<unknown>(KEY, null)) ?? EMPTY);
     setReady(true);
   }, []);
 
-  const update = (next: SquadData) => {
+  const update = (next: TeamData) => {
     setData(next);
     save(KEY, next);
   };
@@ -41,27 +43,22 @@ export function SquadApp({ beforeExport }: { beforeExport?: BeforeExport }) {
           {tab === "players" && (
             <>
               <Players data={data} onChange={update} />
-              <DataBackup
-                filename="squad-tracker.json"
-                data={data}
-                parse={parseSquad}
-                onRestore={update}
-                beforeExport={beforeExport}
-              />
+              <DataBackup filename="team-tracker.json" data={data} parse={parseTeam} onRestore={update} beforeExport={beforeExport} />
             </>
           )}
           {tab === "teams" && <Teams data={data} onChange={update} onSaved={() => setTab("table")} />}
           {tab === "table" && <Table data={data} onChange={update} />}
+          {tab === "leagues" && <Leagues data={data} onChange={update} />}
         </div>
       </div>
-      <nav aria-label="Squad Tracker" className="grid grid-cols-3 gap-1 border-t border-slate-200 bg-white p-1.5">
+      <nav aria-label="Team Tracker" className="grid grid-cols-4 gap-1 border-t border-slate-200 bg-white p-1.5">
         {TABS.map(({ id, label, Icon }) => (
           <button
             key={id}
             type="button"
             aria-current={tab === id ? "page" : undefined}
             onClick={() => setTab(id)}
-            className={`flex min-h-12 items-center justify-center gap-2 rounded-xl text-sm font-extrabold transition active:scale-[0.97] ${
+            className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-extrabold transition active:scale-[0.97] sm:flex-row sm:gap-2 sm:text-sm ${
               tab === id ? "bg-emerald-700 text-white" : "text-slate-700 hover:bg-slate-100"
             }`}
           >

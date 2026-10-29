@@ -1,7 +1,7 @@
-export { SquadApp } from "./SquadApp";
+export { TeamApp } from "./TeamApp";
 
 export const meta = {
-  id: "squad",
-  title: "Squad Tracker",
-  description: "Pick fair football teams from any number of players, with skill ratings, positions and a running leaderboard",
+  id: "team",
+  title: "Team Tracker",
+  description: "Pick fair teams for any sport, keep a player table, and run leagues and knockout cups",
 } as const;

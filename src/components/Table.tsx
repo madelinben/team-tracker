@@ -1,7 +1,8 @@
 import { Trash2, Trophy } from "lucide-react";
-import { type SquadData, standings, TEAM_NAMES } from "../lib/squad";
+import type { TeamData } from "../lib/data";
+import { standings, TEAM_NAMES } from "../lib/team";
 
-export function Table({ data, onChange }: { data: SquadData; onChange: (d: SquadData) => void }) {
+export function Table({ data, onChange }: { data: TeamData; onChange: (d: TeamData) => void }) {
   const names = new Map(data.players.map((p) => [p.id, p.name]));
   const rows = standings(data.matches, data.players);
   const recent = [...data.matches].reverse().slice(0, 10);
@@ -26,7 +27,7 @@ export function Table({ data, onChange }: { data: SquadData; onChange: (d: Squad
       </h2>
       <div className="overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200">
         <table className="w-full text-sm">
-          <caption className="sr-only">Players by points, then goal difference</caption>
+          <caption className="sr-only">Players by points, then score difference</caption>
           <thead className="bg-slate-50 text-slate-700">
             <tr>
               <th scope="col" className="px-3 py-2 text-left">
@@ -45,7 +46,7 @@ export function Table({ data, onChange }: { data: SquadData; onChange: (d: Squad
                 <abbr title="Lost">L</abbr>
               </th>
               <th scope="col" className={cell}>
-                <abbr title="Goal difference">GD</abbr>
+                <abbr title="Score difference">+/-</abbr>
               </th>
               <th scope="col" className={`${cell} pr-3`}>
                 Pts
@@ -67,7 +68,7 @@ export function Table({ data, onChange }: { data: SquadData; onChange: (d: Squad
                 <td className={cell}>{r.won}</td>
                 <td className={cell}>{r.drawn}</td>
                 <td className={cell}>{r.lost}</td>
-                <td className={cell}>{r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}</td>
+                <td className={cell}>{r.diff > 0 ? `+${r.diff}` : r.diff}</td>
                 <td className={`${cell} pr-3 font-black text-emerald-800`}>{r.points}</td>
               </tr>
             ))}
@@ -86,7 +87,7 @@ export function Table({ data, onChange }: { data: SquadData; onChange: (d: Squad
                 {new Date(m.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
               </span>
               <span className="font-semibold tabular-nums">
-                {m.goals.map((g, i) => `${TEAM_NAMES[i]} ${g}`).join(" · ")}
+                {m.scores.map((g, i) => `${TEAM_NAMES[i]} ${g}`).join(" · ")}
               </span>
             </li>
           ))}
