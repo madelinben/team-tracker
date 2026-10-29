@@ -1,4 +1,4 @@
-import { Plus, Star, Trash2 } from "lucide-react";
+import { Plus, Star, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import type { TeamData } from "../lib/data";
 import { SPORTS, sportById } from "../lib/sports";
@@ -7,12 +7,22 @@ import { field } from "./ui";
 
 export function Players({ data, onChange }: { data: TeamData; onChange: (d: TeamData) => void }) {
   const [name, setName] = useState("");
+  const [statName, setStatName] = useState("");
   const sport = sportById(data.options.sport);
   const available = data.players.filter((p) => p.available).length;
 
-  const setPlayers = (players: Player[]) => onChange({ ...data, players, draw: null });
+  const setPlayers = (players: Player[]) => onChange({ ...data, players });
   const patch = (id: string, change: Partial<Player>) =>
     setPlayers(data.players.map((p) => (p.id === id ? { ...p, ...change } : p)));
+
+  function addStat(e: React.FormEvent) {
+    e.preventDefault();
+    const label = statName.trim().slice(0, 24);
+    const id = label.toLowerCase().replace(/\W+/g, "-");
+    if (!id || [...sport.stats, ...data.stats].some((s) => s.id === id)) return setStatName("");
+    onChange({ ...data, stats: [...data.stats, { id, label }] });
+    setStatName("");
+  }
 
   function add(e: React.FormEvent) {
     e.preventDefault();
@@ -51,7 +61,7 @@ export function Players({ data, onChange }: { data: TeamData; onChange: (d: Team
         <select
           value={sport.id}
           onChange={(e) =>
-            onChange({ ...data, options: { ...data.options, sport: e.target.value }, draw: null })
+            onChange({ ...data, options: { ...data.options, sport: e.target.value }, draft: null })
           }
           className={field}
         >
@@ -62,6 +72,54 @@ export function Players({ data, onChange }: { data: TeamData; onChange: (d: Team
           ))}
         </select>
       </label>
+      <form
+        onSubmit={addStat}
+        className="flex flex-col gap-2 rounded-2xl bg-white p-3 ring-1 ring-slate-200"
+      >
+        <p className="text-sm font-semibold">
+          Stats tracked each session{" "}
+          <span className="font-normal text-slate-600">
+            {sport.stats.map((s) => s.label).join(", ") || "none preset"}
+          </span>
+        </p>
+        {data.stats.length > 0 && (
+          <ul className="flex flex-wrap gap-1.5">
+            {data.stats.map((s) => (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onChange({ ...data, stats: data.stats.filter((x) => x.id !== s.id) })
+                  }
+                  aria-label={`Stop tracking ${s.label}`}
+                  className="inline-flex min-h-9 items-center gap-1 rounded-full bg-emerald-50 px-3 text-sm font-semibold text-emerald-900 ring-1 ring-emerald-200 hover:bg-emerald-100"
+                >
+                  {s.label} <X size={14} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex gap-2">
+          <label htmlFor="new-stat" className="sr-only">
+            Add your own stat
+          </label>
+          <input
+            id="new-stat"
+            value={statName}
+            onChange={(e) => setStatName(e.target.value)}
+            placeholder="Add your own: Yellow cards, Nutmegs"
+            className={`${field} min-w-0 flex-1`}
+          />
+          <button
+            type="submit"
+            className="inline-flex min-h-11 items-center gap-1 rounded-xl px-4 text-sm font-bold ring-1 ring-slate-300 hover:bg-slate-100"
+          >
+            <Plus size={16} aria-hidden="true" />
+            Stat
+          </button>
+        </div>
+      </form>
       <form onSubmit={add} className="flex gap-2">
         <label htmlFor="new-player" className="sr-only">
           Player names, separated by commas

@@ -1,4 +1,4 @@
-import { type Sport, sportById } from "./sports.ts";
+import { type Sport, type StatDef, sportById } from "./sports.ts";
 
 export interface Player {
   id: string;
@@ -20,13 +20,19 @@ export interface TeamOptions {
   spreadPositions: boolean;
 }
 
+/** One session: who played for which side that day, the score and each player's counts */
 export interface Match {
   id: string;
+  /** yyyy-mm-dd (older sessions: full ISO time) */
   date: string;
   sport: string;
-  /** Player ids per team, in team order */
+  /** Player ids per team, in team order. Line-ups change session to session. */
   teams: string[][];
   scores: number[];
+  /** playerId → statId → count */
+  stats?: Record<string, Record<string, number>>;
+  /** Player of the match */
+  motm?: string;
 }
 
 export interface Standing {
@@ -37,7 +43,12 @@ export interface Standing {
   lost: number;
   diff: number;
   points: number;
+  motm: number;
+  /** statId → total across sessions */
+  totals: Record<string, number>;
 }
+
+export type Column = "played" | "won" | "points" | "diff" | "motm";
 
 export const TEAM_NAMES = [
   "Reds",
@@ -107,7 +118,17 @@ export function standings(matches: readonly Match[], players: readonly Player[])
   const table = new Map<string, Standing>(
     players.map((p) => [
       p.id,
-      { playerId: p.id, played: 0, won: 0, drawn: 0, lost: 0, diff: 0, points: 0 },
+      {
+        playerId: p.id,
+        played: 0,
+        won: 0,
+        drawn: 0,
+        lost: 0,
+        diff: 0,
+        points: 0,
+        motm: 0,
+        totals: {},
+      },
     ])
   );
   for (const m of matches) {
@@ -123,6 +144,9 @@ export function standings(matches: readonly Match[], players: readonly Player[])
         if (!s) continue;
         s.played++;
         s.diff += score - against;
+        if (m.motm === id) s.motm++;
+        for (const [stat, n] of Object.entries(m.stats?.[id] ?? {}))
+          s.totals[stat] = (s.totals[stat] ?? 0) + n;
         if (score === best && !shared) {
           s.won++;
           s.points += sport.points.win;
@@ -139,4 +163,22 @@ export function standings(matches: readonly Match[], players: readonly Player[])
   return [...table.values()]
     .filter((s) => s.played > 0)
     .sort((a, b) => b.points - a.points || b.diff - a.diff || a.played - b.played);
+}
+
+/** Highest first by a table column or a stat total; ties fall back to points */
+export function rank(rows: readonly Standing[], by: Column | StatDef): Standing[] {
+  const value = (s: Standing) => (typeof by === "string" ? s[by] : (s.totals[by.id] ?? 0));
+  return [...rows].sort((a, b) => value(b) - value(a) || b.points - a.points);
+}
+
+/** Move a player to another side for this session */
+export function movePlayer(teams: readonly string[][], playerId: string, to: number): string[][] {
+  return teams.map((t, i) =>
+    i === to ? [...t.filter((id) => id !== playerId), playerId] : t.filter((id) => id !== playerId)
+  );
+}
+
+/** Sport presets first, then the squad's own stats; same id counted once */
+export function statColumns(sport: Sport, custom: readonly StatDef[]): StatDef[] {
+  return [...sport.stats, ...custom.filter((c) => !sport.stats.some((s) => s.id === c.id))];
 }

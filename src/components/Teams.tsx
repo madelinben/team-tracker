@@ -1,19 +1,8 @@
-import { Minus, Plus, Save, Shuffle } from "lucide-react";
-import { useState } from "react";
-import type { TeamData } from "../lib/data";
+import { Minus, Plus, Shuffle } from "lucide-react";
+import { newDraft, saveMatch, type TeamData } from "../lib/data";
 import { sportById } from "../lib/sports";
-import { makeTeams, type Player, TEAM_NAMES, teamRating } from "../lib/team";
-
-const TEAM_COLOURS = [
-  "border-t-rose-600",
-  "border-t-sky-600",
-  "border-t-emerald-600",
-  "border-t-amber-500",
-  "border-t-slate-300",
-  "border-t-slate-900",
-  "border-t-orange-500",
-  "border-t-violet-600",
-];
+import { makeTeams, statColumns, TEAM_NAMES } from "../lib/team";
+import { SessionForm } from "./SessionForm";
 
 interface Props {
   data: TeamData;
@@ -25,35 +14,22 @@ export function Teams({ data, onChange, onSaved }: Props) {
   const { options } = data;
   const sport = sportById(options.sport);
   const available = data.players.filter((p) => p.available);
-  const byId = new Map(data.players.map((p) => [p.id, p]));
-  const teams = (data.draw ?? []).map((ids) => ids.flatMap((id) => byId.get(id) ?? []));
-  const [goals, setGoals] = useState<number[]>([]);
 
   const setOptions = (change: Partial<TeamData["options"]>) =>
-    onChange({ ...data, options: { ...options, ...change }, draw: null });
+    onChange({ ...data, options: { ...options, ...change }, draft: null });
 
-  function draw() {
-    setGoals([]);
-    onChange({ ...data, draw: makeTeams(available, options).map((t) => t.map((p) => p.id)) });
-  }
-
-  function saveResult() {
-    if (!data.draw) return;
+  const draw = () =>
     onChange({
       ...data,
-      draw: null,
-      matches: [
-        ...data.matches,
-        {
-          id: crypto.randomUUID(),
-          date: new Date().toISOString(),
-          sport: sport.id,
-          teams: data.draw,
-          scores: data.draw.map((_, i) => goals[i] ?? 0),
-        },
-      ],
+      draft: newDraft(
+        sport.id,
+        makeTeams(available, options).map((t) => t.map((p) => p.id))
+      ),
     });
-    setGoals([]);
+
+  function saveResult() {
+    if (!data.draft) return;
+    onChange({ ...data, draft: null, matches: saveMatch(data.matches, data.draft) });
     onSaved();
   }
 
@@ -118,7 +94,7 @@ export function Teams({ data, onChange, onSaved }: Props) {
         className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 font-extrabold text-white hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:bg-slate-300 disabled:text-slate-600"
       >
         <Shuffle size={18} aria-hidden="true" />
-        {data.draw ? "Reshuffle" : `Pick teams from ${available.length} players`}
+        {data.draft ? "Reshuffle" : `Pick teams from ${available.length} players`}
       </button>
       {available.length < 2 && (
         <p className="text-center text-sm text-slate-600">
@@ -126,85 +102,16 @@ export function Teams({ data, onChange, onSaved }: Props) {
         </p>
       )}
 
-      {teams.length > 0 && (
-        <>
-          <ul aria-live="polite" className="grid gap-3 sm:grid-cols-2">
-            {teams.map((team, i) => (
-              <TeamCard
-                key={TEAM_NAMES[i]}
-                name={TEAM_NAMES[i] ?? `Team ${i + 1}`}
-                colour={TEAM_COLOURS[i] ?? ""}
-                team={team}
-                scoreLabel={sport.scoreLabel}
-                positionLabel={(id) => sport.positions.find((o) => o.id === id)?.id ?? ""}
-                goals={goals[i] ?? 0}
-                onGoals={(g) => setGoals(teams.map((_, j) => (j === i ? g : (goals[j] ?? 0))))}
-              />
-            ))}
-          </ul>
-          <button
-            type="button"
-            onClick={saveResult}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 font-bold text-white hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-          >
-            <Save size={18} aria-hidden="true" />
-            Save result to the table
-          </button>
-        </>
+      {data.draft && (
+        <SessionForm
+          session={data.draft}
+          players={data.players}
+          stats={statColumns(sportById(data.draft.sport), data.stats)}
+          onChange={(draft) => onChange({ ...data, draft })}
+          onSave={saveResult}
+          saveLabel="Save session"
+        />
       )}
     </section>
-  );
-}
-
-interface TeamCardProps {
-  name: string;
-  colour: string;
-  team: Player[];
-  scoreLabel: string;
-  positionLabel: (id: string) => string;
-  goals: number;
-  onGoals: (goals: number) => void;
-}
-
-function TeamCard({
-  name,
-  colour,
-  team,
-  scoreLabel,
-  positionLabel,
-  goals,
-  onGoals,
-}: TeamCardProps) {
-  const id = `goals-${name}`;
-  return (
-    <li className={`rounded-2xl border-t-8 bg-white p-4 ring-1 ring-slate-200 ${colour}`}>
-      <div className="flex items-baseline justify-between">
-        <h3 className="text-lg font-extrabold">{name}</h3>
-        <span className="text-sm tabular-nums text-slate-600">skill {teamRating(team)}</span>
-      </div>
-      <ul className="mt-2 flex flex-col gap-1">
-        {team.map((p) => (
-          <li key={p.id} className="flex justify-between text-sm">
-            <span className="font-semibold">{p.name}</span>
-            <span className="text-slate-600">{positionLabel(p.position)}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-3 flex items-center gap-2">
-        <label htmlFor={id} className="text-sm font-semibold">
-          {scoreLabel}
-        </label>
-        <input
-          id={id}
-          type="number"
-          inputMode="numeric"
-          min={0}
-          max={999}
-          value={goals}
-          onChange={(e) => onGoals(Math.max(0, Math.min(999, Number(e.target.value) || 0)))}
-          className="min-h-11 w-20 rounded-xl border border-slate-300 px-3 text-lg font-bold tabular-nums"
-        />
-      </div>
-    </li>
   );
 }

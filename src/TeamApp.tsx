@@ -1,5 +1,5 @@
 import { ListOrdered, Shirt, Trophy, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DataBackup } from "./components/DataBackup";
 import { Leagues } from "./components/Leagues";
 import { Players } from "./components/Players";
@@ -14,7 +14,7 @@ type Tab = "players" | "teams" | "table" | "leagues";
 const TABS = [
   { id: "players", label: "Squad", Icon: Users },
   { id: "teams", label: "Pick", Icon: Shirt },
-  { id: "table", label: "Table", Icon: ListOrdered },
+  { id: "table", label: "Stats", Icon: ListOrdered },
   { id: "leagues", label: "Leagues", Icon: Trophy },
 ] as const;
 
@@ -22,6 +22,12 @@ export function TeamApp({ beforeExport }: { beforeExport?: BeforeExport }) {
   const [tab, setTab] = useState<Tab>("players");
   const [data, setData] = useState<TeamData>(EMPTY);
   const [ready, setReady] = useState(false);
+  const scroller = useRef<HTMLDivElement>(null);
+
+  const go = (next: Tab) => {
+    setTab(next);
+    scroller.current?.scrollTo(0, 0);
+  };
 
   // Load after mount: localStorage is unavailable during SSR and would cause a hydration mismatch.
   useEffect(() => {
@@ -38,7 +44,7 @@ export function TeamApp({ beforeExport }: { beforeExport?: BeforeExport }) {
 
   return (
     <div className="flex h-full flex-col bg-slate-50 text-slate-900">
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div ref={scroller} data-scroll className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-2xl flex-col gap-5 p-4">
           {tab === "players" && (
             <>
@@ -52,9 +58,7 @@ export function TeamApp({ beforeExport }: { beforeExport?: BeforeExport }) {
               />
             </>
           )}
-          {tab === "teams" && (
-            <Teams data={data} onChange={update} onSaved={() => setTab("table")} />
-          )}
+          {tab === "teams" && <Teams data={data} onChange={update} onSaved={() => go("table")} />}
           {tab === "table" && <Table data={data} onChange={update} />}
           {tab === "leagues" && <Leagues data={data} onChange={update} />}
         </div>
@@ -68,7 +72,7 @@ export function TeamApp({ beforeExport }: { beforeExport?: BeforeExport }) {
             key={id}
             type="button"
             aria-current={tab === id ? "page" : undefined}
-            onClick={() => setTab(id)}
+            onClick={() => go(id)}
             className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-extrabold transition active:scale-[0.97] sm:flex-row sm:gap-2 sm:text-sm ${
               tab === id ? "bg-emerald-700 text-white" : "text-slate-700 hover:bg-slate-100"
             }`}

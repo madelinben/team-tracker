@@ -5,6 +5,12 @@ export interface PositionDef {
   unique?: boolean;
 }
 
+/** A per-player count recorded each session (goals, saves, wickets) */
+export interface StatDef {
+  id: string;
+  label: string;
+}
+
 export interface Sport {
   id: string;
   label: string;
@@ -14,7 +20,11 @@ export interface Sport {
   draws: boolean;
   points: { win: number; draw: number; loss: number };
   positions: PositionDef[];
+  stats: StatDef[];
 }
+
+const stat = (...labels: string[]): StatDef[] =>
+  labels.map((label) => ({ id: label.toLowerCase().replace(/\W+/g, "-"), label }));
 
 const LEAGUE = { win: 3, draw: 1, loss: 0 };
 const NO_DRAW = { win: 2, draw: 1, loss: 0 };
@@ -28,6 +38,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Score",
     draws: true,
     points: LEAGUE,
+    stats: [],
     positions: [],
   },
   {
@@ -36,6 +47,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Goals",
     draws: true,
     points: LEAGUE,
+    stats: stat("Goals", "Assists", "Saves"),
     positions: [
       keeper,
       { id: "DEF", label: "Defender" },
@@ -49,6 +61,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Points",
     draws: true,
     points: NO_DRAW,
+    stats: stat("Touchdowns", "Catches", "Interceptions"),
     positions: [
       { id: "QB", label: "Quarterback", unique: true },
       { id: "OFF", label: "Offence" },
@@ -61,6 +74,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Points",
     draws: true,
     points: { win: 4, draw: 2, loss: 0 },
+    stats: stat("Tries", "Conversions", "Tackles"),
     positions: [
       { id: "FWD", label: "Forward" },
       { id: "BCK", label: "Back" },
@@ -72,6 +86,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Goals",
     draws: true,
     points: LEAGUE,
+    stats: stat("Goals", "Intercepts", "Rebounds"),
     positions: ["GS", "GA", "WA", "C", "WD", "GD", "GK"].map((id) => ({
       id,
       label: id,
@@ -84,6 +99,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Points",
     draws: false,
     points: NO_DRAW,
+    stats: stat("Points", "Rebounds", "Assists"),
     positions: [
       { id: "G", label: "Guard" },
       { id: "F", label: "Forward" },
@@ -96,6 +112,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Goals",
     draws: true,
     points: LEAGUE,
+    stats: stat("Goals", "Assists", "Saves"),
     positions: [
       keeper,
       { id: "DEF", label: "Defender" },
@@ -109,6 +126,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Sets",
     draws: false,
     points: NO_DRAW,
+    stats: stat("Kills", "Aces", "Blocks"),
     positions: [
       { id: "S", label: "Setter", unique: true },
       { id: "L", label: "Libero", unique: true },
@@ -121,6 +139,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Runs",
     draws: true,
     points: { win: 2, draw: 1, loss: 0 },
+    stats: stat("Runs", "Wickets", "Catches"),
     positions: [
       { id: "WK", label: "Wicketkeeper", unique: true },
       { id: "BAT", label: "Batter" },
@@ -134,6 +153,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Goals",
     draws: true,
     points: NO_DRAW,
+    stats: stat("Goals", "Assists", "Saves"),
     positions: [keeper, { id: "FLD", label: "Court player" }],
   },
   {
@@ -142,6 +162,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Points",
     draws: false,
     points: NO_DRAW,
+    stats: stat("Goals", "Assists", "Blocks"),
     positions: [
       { id: "H", label: "Handler" },
       { id: "C", label: "Cutter" },
@@ -153,6 +174,7 @@ export const SPORTS: readonly Sport[] = [
     scoreLabel: "Rounders",
     draws: true,
     points: NO_DRAW,
+    stats: stat("Rounders", "Catches", "Outs"),
     positions: [
       { id: "BWL", label: "Bowler", unique: true },
       { id: "BS", label: "Backstop", unique: true },

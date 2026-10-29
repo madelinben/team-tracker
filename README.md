@@ -5,7 +5,10 @@ Pick fair teams for any team sport, keep a player table, and run leagues and kno
 - Sports presets for football and 5-a-side, American football and flag, rugby, netball, basketball, hockey, volleyball, cricket, handball and water polo, ultimate, rounders and softball, or **any sport** with no positions
 - Tick who is available, rate skill 1 to 5, set positions: unique positions (keeper, quarterback, netball bibs) go one per team first
 - 2 to 8 teams, sizes never differ by more than one, reshuffle until happy
-- Record each game: the player table uses the sport's points (football 3/1/0, rugby 4/2/0, others 2/1/0)
+- One master squad; every session stores its own line-ups, so players can switch sides week to week. Move players between teams, bench no-shows, add late arrivals
+- Per-player stats each session: sport presets (goals, assists, saves; points, rebounds; runs, wickets…) plus your own, and player of the match
+- Leaderboard across all sessions, sortable by points, wins, MOTM or any stat, with win rate and per-session averages; edit or delete past sessions
+- Points follow the sport (football 3/1/0, rugby 4/2/0, others 2/1/0)
 - Leagues (round robin, optional home and away) and knockout cups with byes for any teams or players, from five-a-side to padel pairs or quiz teams
 - Data stays in the browser (localStorage). Download a backup file and restore it on any device.
 

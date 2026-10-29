@@ -9,7 +9,17 @@ import {
   roundRobin,
   winnerOf,
 } from "./competition.ts";
-import { makeTeams, type Player, standings, teamRating } from "./team.ts";
+import { saveMatch } from "./data.ts";
+import { sportById } from "./sports.ts";
+import {
+  makeTeams,
+  movePlayer,
+  type Player,
+  rank,
+  standings,
+  statColumns,
+  teamRating,
+} from "./team.ts";
 
 const p = (id: string, rating: number, position = ""): Player => ({
   id,
@@ -96,5 +106,51 @@ test("leagueTable ranks by points then goal difference", () => {
   assert.deepEqual(
     t.map((r) => r.points),
     [1, 1]
+  );
+});
+
+test("players swap sides between sessions; stats and MOTM add up per player", () => {
+  const players = [p("a", 1), p("b", 1), p("c", 1)];
+  const week1 = {
+    id: "1",
+    date: "2026-10-01",
+    sport: "football",
+    teams: [["a", "b"], ["c"]],
+    scores: [2, 1],
+    stats: { a: { goals: 2 }, c: { goals: 1, saves: 4 } },
+    motm: "c",
+  };
+  const week2 = {
+    id: "2",
+    date: "2026-10-08",
+    sport: "football",
+    teams: [["a"], ["b", "c"]],
+    scores: [0, 3],
+    stats: { c: { goals: 3 } },
+    motm: "c",
+  };
+  const rows = standings([week1, week2], players);
+  const c = rows.find((r) => r.playerId === "c");
+  assert.deepEqual([c?.played, c?.won, c?.motm, c?.totals], [2, 1, 2, { goals: 4, saves: 4 }]);
+  assert.equal(rank(rows, { id: "goals", label: "Goals" })[0]?.playerId, "c");
+  assert.equal(rank(rows, "played").length, 3);
+});
+
+test("movePlayer moves sides or benches; saveMatch replaces an edited session", () => {
+  assert.deepEqual(movePlayer([["a", "b"], ["c"]], "b", 1), [["a"], ["c", "b"]]);
+  assert.deepEqual(movePlayer([["a", "b"], ["c"]], "b", -1), [["a"], ["c"]]);
+  const m = { id: "1", date: "2026-10-01", sport: "any", teams: [], scores: [] };
+  assert.equal(saveMatch([m], { ...m, scores: [1] }).length, 1);
+  assert.equal(saveMatch([m], { ...m, id: "2" }).length, 2);
+});
+
+test("statColumns: sport presets plus custom, no duplicates", () => {
+  const cols = statColumns(sportById("football"), [
+    { id: "goals", label: "Goals" },
+    { id: "nutmegs", label: "Nutmegs" },
+  ]);
+  assert.deepEqual(
+    cols.map((c) => c.id),
+    ["goals", "assists", "saves", "nutmegs"]
   );
 });
